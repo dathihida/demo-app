@@ -9,7 +9,7 @@ const linearRegression = (temp, humidity, rain) => {
   return intercept + (tempCoef * temp) + (humidityCoef * humidity) + (rainCoef * rain);
 };
 
-const predictFluRisk = (temp, humidity, rain, healthStatus, age, history) => {
+const predictFluRisk = (temp, humidity, rain, healthStatus, age, history, region, fluOutbreak) => {
   let baseRisk = linearRegression(temp, humidity, rain);
   
   const riskKeywords = [
@@ -35,6 +35,13 @@ const predictFluRisk = (temp, humidity, rain, healthStatus, age, history) => {
   if (history.toLowerCase().includes("hen suyễn") || history.toLowerCase().includes("tiểu đường")) baseRisk += 15;
   if (history.toLowerCase().includes("không có tiền sử")) baseRisk -= 5;
 
+  if (region === "Bắc") baseRisk += 5;
+  if (region === "Trung") baseRisk += 3;
+  if (region === "Nam") baseRisk -= 2;
+
+  if (fluOutbreak === "Có") baseRisk += 10;
+  if (fluOutbreak === "Không") baseRisk -= 5;
+
   baseRisk += healthScore;
   return Math.min(100, Math.max(0, Math.round(baseRisk)));
 };
@@ -46,6 +53,8 @@ export default function FluTrendApp() {
   const [healthStatus, setHealthStatus] = useState("");
   const [age, setAge] = useState(30);
   const [history, setHistory] = useState("");
+  const [region, setRegion] = useState("Bắc");
+  const [fluOutbreak, setFluOutbreak] = useState("Không");
   const [prediction, setPrediction] = useState(null);
 
   const handlePredict = () => {
@@ -53,7 +62,7 @@ export default function FluTrendApp() {
       alert("Vui lòng nhập đầy đủ thông tin sức khỏe!");
       return;
     }
-    setPrediction(predictFluRisk(temp, humidity, rain, healthStatus, age, history));
+    setPrediction(predictFluRisk(temp, humidity, rain, healthStatus, age, history, region, fluOutbreak));
   };
 
   const handleInputChange = (setter) => (e) => {
@@ -77,6 +86,21 @@ export default function FluTrendApp() {
           <div className="mb-3">
             <label className="font-semibold">Bạn cảm thấy thế nào hôm nay? Bạn có hay mắc bệnh cúm không?</label>
             <input type="text" value={healthStatus} onChange={(e) => setHealthStatus(e.target.value)} className="ml-2 p-2 border w-full rounded-md" />
+          </div>
+          <div className="mb-3">
+            <label className="font-semibold">Bạn sống ở khu vực nào? (Bắc, Trung, Nam): </label>
+            <select value={region} onChange={(e) => setRegion(e.target.value)} className="ml-2 p-2 border rounded-md">
+              <option value="Bắc">Bắc</option>
+              <option value="Trung">Trung</option>
+              <option value="Nam">Nam</option>
+            </select>
+          </div>
+          <div className="mb-3">
+            <label className="font-semibold">Tại khu vực của bạn đang có dịch cúm không?</label>
+            <select value={fluOutbreak} onChange={(e) => setFluOutbreak(e.target.value)} className="ml-2 p-2 border rounded-md">
+              <option value="Có">Có</option>
+              <option value="Không">Không</option>
+            </select>
           </div>
           <div className="mb-3">
             <label className="font-semibold">Tuổi của bạn: </label>
